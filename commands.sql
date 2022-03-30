@@ -9,10 +9,11 @@ likes (integer with default value zero)
 Add at least two blogs to the database.
 
 CREATE TABLE notes (
-    id SERIAL PRIMARY KEY,
-    content text NOT NULL,
-    important boolean,
-    date time
+    id SERIAL PRIMARY KEY INTEGER ,
+    url text NOT NULL,
+    author text ,
+    title text NOT NULL
+    likes INTEGER,
 );
 
 
