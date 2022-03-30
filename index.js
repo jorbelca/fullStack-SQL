@@ -34,6 +34,7 @@ Blog.init(
     },
     likes: {
       type: DataTypes.INTEGER,
+      defaultValue: 0,
     },
   },
   {
@@ -43,6 +44,8 @@ Blog.init(
     modelName: "blog",
   }
 )
+
+Blog.sync()
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
