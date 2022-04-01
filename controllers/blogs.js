@@ -1,5 +1,6 @@
 const BlogRouter = require("express").Router()
 require("express-async-errors")
+const jwt = require("jsonwebtoken")
 
 const Blog = require("../models/blogs")
 const User = require("../models/users")
@@ -9,9 +10,8 @@ const tokenExtractor = (req, res, next) => {
   const authorization = req.get("authorization")
   if (authorization && authorization.toLowerCase().startsWith("bearer ")) {
     try {
-      console.log(authorization)
-      console.log(SECRET)
-      req.decodedToken = jwt.verify(authorization.substring(7), SECRET)
+      const token = authorization.substring(7)
+      req.decodedToken = jwt.verify(token, SECRET)
     } catch {
       res.status(401).json({ error: "token invalid" })
     }
@@ -35,7 +35,11 @@ BlogRouter.get("/", async (req, res) => {
 BlogRouter.post("/", tokenExtractor, async (req, res) => {
   try {
     const user = await User.findByPk(req.decodedToken.id)
-    const newBlog = await Blog.create({ ...req.body, userId: user.id })
+    const newBlog = await Blog.create({
+      ...req.body,
+      userId: user.id,
+      author: user.name,
+    })
     res.json(newBlog)
   } catch (error) {
     console.error(error)
@@ -49,8 +53,9 @@ const blogFinder = async (req, res, next) => {
   next()
 }
 
-BlogRouter.delete("/:id", blogFinder, async (req, res) => {
-  if (req.blog) {
+BlogRouter.delete("/:id", blogFinder, tokenExtractor, async (req, res) => {
+  const user = await User.findByPk(req.decodedToken.id)
+  if (req.blog && user) {
     await req.blog.destroy()
     res.status(200).json("Correctly deleted")
   } else {
@@ -66,6 +71,20 @@ BlogRouter.put("/:id", blogFinder, async (req, res) => {
   } else {
     res.status(404).end()
   }
+})
+
+BlogRouter.get("/:id", async (req, res) => {
+  const blogs = await Blog.findOne({
+    attributes: { exclude: ["userId"] },
+    include: {
+      model: User,
+      attributes: ["name"],
+    },
+    where: {
+      id: req.params.id,
+    },
+  })
+  res.json(blogs)
 })
 
 module.exports = BlogRouter
