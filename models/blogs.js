@@ -1,6 +1,7 @@
 const { Model, DataTypes } = require("sequelize")
 
 const { sequelize } = require("../util/db")
+const currYear = new Date().getFullYear()
 
 class Blog extends Model {}
 Blog.init(
@@ -25,6 +26,21 @@ Blog.init(
     likes: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
+    },
+    year: {
+      type: DataTypes.INTEGER,
+      validate: {
+        min: 1991,
+        max: currYear,
+        customValidator() {
+          if (this.year <= 1991 || this.year >= currYear) {
+            console.log(currYear)
+            throw new Error(
+              "The year must be at least equal to 1991 but not greater than the current year."
+            )
+          }
+        },
+      },
     },
   },
   {
