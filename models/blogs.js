@@ -1,6 +1,7 @@
 const { Model, DataTypes } = require("sequelize")
 
 const { sequelize } = require("../util/db")
+
 const currYear = new Date().getFullYear()
 
 class Blog extends Model {}
