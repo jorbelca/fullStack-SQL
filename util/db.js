@@ -35,7 +35,7 @@ const rollbackMigration = async () => {
 const connectToDatabase = async () => {
   try {
     await sequelize.authenticate()
-    await runMigrations() // highlight-line
+    await runMigrations() 
     console.log("connected to the database")
   } catch (err) {
     console.log("failed to connect to the database")
