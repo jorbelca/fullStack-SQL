@@ -1,6 +1,5 @@
 const { DataTypes } = require("sequelize")
 
-
 module.exports = {
   up: async ({ context: queryInterface }) => {
     await queryInterface.createTable("blogs", {
@@ -37,6 +36,11 @@ module.exports = {
         type: DataTypes.INTEGER,
       },
     })
+    await queryInterface.addColumn("blogs", "user_id", {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: { model: "users", key: "id" },
+    })
     await queryInterface.createTable("users", {
       id: {
         type: DataTypes.INTEGER,
@@ -63,11 +67,6 @@ module.exports = {
         type: DataTypes.DATE,
         allowNull: false,
       },
-    })
-    await queryInterface.addColumn("blogs", "user_id", {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: { model: "users", key: "id" },
     })
   },
   down: async ({ context: queryInterface }) => {
