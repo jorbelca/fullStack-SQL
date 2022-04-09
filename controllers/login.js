@@ -3,8 +3,10 @@ const LoginRouter = require("express").Router()
 
 const { SECRET } = require("../util/config")
 const User = require("../models/users")
+const { sessionCreator, sessionVerifier } = require("../util/middleware")
 
 LoginRouter.post("/", async (request, response) => {
+  sessionVerifier()
   const body = request.body
 
   const user = await User.findOne({
@@ -29,6 +31,7 @@ LoginRouter.post("/", async (request, response) => {
   const token = jwt.sign(userForToken, SECRET)
 
   response.status(200).send({ token, username: user.username, name: user.name })
+  sessionCreator()
 })
 
 module.exports = LoginRouter

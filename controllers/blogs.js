@@ -6,7 +6,7 @@ const { Op } = require("sequelize")
 const Blog = require("../models/blogs")
 const User = require("../models/users")
 
-const {tokenExtractor} = require("../util/middleware")
+const { tokenExtractor, sessionCreator } = require("../util/middleware")
 
 BlogRouter.get("/", async (req, res) => {
   let where = {}
@@ -37,7 +37,7 @@ BlogRouter.get("/", async (req, res) => {
   res.json(blogs)
 })
 
-BlogRouter.post("/", tokenExtractor, async (req, res) => {
+BlogRouter.post("/", tokenExtractor, sessionCreator, async (req, res) => {
   try {
     const user = await User.findByPk(req.decodedToken.id)
     const newBlog = await Blog.create({

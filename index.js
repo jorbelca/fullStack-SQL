@@ -9,11 +9,13 @@ const UserRouter = require("./controllers/users")
 const LoginRouter = require("./controllers/login")
 const AuthorRouter = require("./controllers/authors")
 const ReadingListRouter = require("./controllers/readingList")
+const LogoutRouter = require("./controllers/logout")
 
 app.use(express.json())
 app.use("/api/blogs", BlogRouter)
 app.use("/api/users", UserRouter)
 app.use("/api/login", LoginRouter)
+app.use("/api/logout", LogoutRouter)
 app.use("/api/authors", AuthorRouter)
 app.use("/api/readinglists", ReadingListRouter)
 
