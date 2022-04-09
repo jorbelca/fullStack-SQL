@@ -3,6 +3,9 @@ const Sessions = require("../models/sessions")
 const LogoutRouter = require("express").Router()
 
 LogoutRouter.delete("/", async (req, res) => {
+  if (!req.get("authorization"))
+    res.status(400).json({ error: "We need your token" })
+
   const session = await Sessions.findOne({
     where: {
       token: req.get("authorization").substring(7),

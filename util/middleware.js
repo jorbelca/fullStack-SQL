@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken")
 const Sessions = require("../models/sessions")
+const User = require("../models/users")
 const { SECRET } = require("./config")
 
 const tokenExtractor = (req, res, next) => {
@@ -29,19 +30,55 @@ const sessionVerifier = async (req, res, next) => {
   }
 }
 
-const sessionCreator = async (req, res, next) => {
-  try {
-    await Sessions.create({
-      token: req.get("authorization").substring(7),
-      userId: jwt.verify(req.get("authorization").substring(7), SECRET).id,
-      createdAt: new Date().toLocaleString(),
-      updatedAt: new Date().toLocaleString(),
-    })
-    res.json("Session established")
-  } catch (error) {
-    return res.status(400).json({ error })
+const sessionCreator = async (token, next) => {
+  const user_id = jwt.verify(token, SECRET).id
+
+  const user = await User.findOne({
+    where: {
+      id: user_id,
+    },
+  })
+
+  if (user.disabled) {
+    return res.status(401).json("You're  disabled")
   }
-  next()
+
+  const oldSession = await Sessions.findOne({
+    where: {
+      userId: user_id,
+    },
+  })
+
+  if (oldSession) {
+    // UPDATE THE TOKEN AND THE DATE OF THE SESSION IF THERE IS A REGISTER OF THE USER ID
+    await Sessions.update(
+      {
+        token: token,
+        userId: user_id,
+        createdAt: oldSession.dataValues.createdAt,
+        updatedAt: new Date().toLocaleString(),
+      },
+      {
+        where: {
+          userId: user_id,
+        },
+      }
+    )
+  } else {
+    try {
+      // CREATE SESSION
+      await Sessions.create({
+        token: token,
+        userId: user_id,
+        createdAt: new Date().toLocaleString(),
+        updatedAt: new Date().toLocaleString(),
+      })
+      res.json("Session established")
+    } catch (error) {
+      return res.status(400).json({ error })
+    }
+    next()
+  }
 }
 
 module.exports = { tokenExtractor, sessionCreator, sessionVerifier }

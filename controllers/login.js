@@ -3,10 +3,9 @@ const LoginRouter = require("express").Router()
 
 const { SECRET } = require("../util/config")
 const User = require("../models/users")
-const { sessionCreator, sessionVerifier } = require("../util/middleware")
+const { sessionCreator } = require("../util/middleware")
 
 LoginRouter.post("/", async (request, response) => {
-  sessionVerifier()
   const body = request.body
 
   const user = await User.findOne({
@@ -22,16 +21,18 @@ LoginRouter.post("/", async (request, response) => {
       error: "invalid username or password",
     })
   }
-
+  if (user.disabled) {
+    return response.status(401).json({ error: "You're  disabled" })
+  }
   const userForToken = {
     username: user.username,
     id: user.id,
   }
 
   const token = jwt.sign(userForToken, SECRET)
+  sessionCreator(token)
 
   response.status(200).send({ token, username: user.username, name: user.name })
-  sessionCreator()
 })
 
 module.exports = LoginRouter

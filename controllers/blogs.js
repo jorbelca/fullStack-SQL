@@ -6,7 +6,7 @@ const { Op } = require("sequelize")
 const Blog = require("../models/blogs")
 const User = require("../models/users")
 
-const { tokenExtractor, sessionCreator } = require("../util/middleware")
+const { tokenExtractor, sessionVerifier } = require("../util/middleware")
 
 BlogRouter.get("/", async (req, res) => {
   let where = {}
@@ -37,7 +37,7 @@ BlogRouter.get("/", async (req, res) => {
   res.json(blogs)
 })
 
-BlogRouter.post("/", tokenExtractor, sessionCreator, async (req, res) => {
+BlogRouter.post("/", sessionVerifier, tokenExtractor, async (req, res) => {
   try {
     const user = await User.findByPk(req.decodedToken.id)
     const newBlog = await Blog.create({
@@ -58,15 +58,21 @@ const blogFinder = async (req, res, next) => {
   next()
 }
 
-BlogRouter.delete("/:id", blogFinder, tokenExtractor, async (req, res) => {
-  const user = await User.findByPk(req.decodedToken.id)
-  if (req.blog && user) {
-    await req.blog.destroy()
-    res.status(200).json("Correctly deleted")
-  } else {
-    res.status(404).end()
+BlogRouter.delete(
+  "/:id",
+  sessionVerifier,
+  blogFinder,
+  tokenExtractor,
+  async (req, res) => {
+    const user = await User.findByPk(req.decodedToken.id)
+    if (req.blog && user) {
+      await req.blog.destroy()
+      res.status(200).json("Correctly deleted")
+    } else {
+      res.status(404).end()
+    }
   }
-})
+)
 
 BlogRouter.put("/:id", blogFinder, async (req, res) => {
   if (req.blog) {

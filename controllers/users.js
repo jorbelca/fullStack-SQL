@@ -4,6 +4,7 @@ const User = require("../models/users")
 const Blog = require("../models/blogs")
 
 const { Op } = require("sequelize")
+const { sessionVerifier } = require("../util/middleware")
 
 UserRouter.get("/", async (req, res) => {
   const users = await User.findAll({
@@ -15,7 +16,7 @@ UserRouter.get("/", async (req, res) => {
   res.json(users)
 })
 
-UserRouter.post("/", async (req, res) => {
+UserRouter.post("/", sessionVerifier, async (req, res) => {
   try {
     const user = await User.create(req.body)
     res.json(user)
@@ -62,7 +63,7 @@ UserRouter.get("/:id", async (req, res) => {
   }
 })
 
-UserRouter.put("/:username", async (req, res) => {
+UserRouter.put("/:username", sessionVerifier, async (req, res) => {
   const user = await User.findOne({ where: { username: req.params.username } })
 
   if (user) {
